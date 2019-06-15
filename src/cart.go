@@ -21,8 +21,14 @@ func (c *Cart) GetQuantity() int {
 }
 
 // GetItems returns the cart items
-func (c *Cart) GetItems() map[string]*Item {
-	return c.items
+func (c *Cart) GetItems() []Item {
+	items := make([]Item, len(c.items))
+	i := 0
+	for _, item := range c.items {
+		items[i] = *item
+		i++
+	}
+	return items
 }
 
 // AddArticle add the id and quantity of an article to the cart
