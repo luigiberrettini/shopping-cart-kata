@@ -35,7 +35,7 @@ func (s *store) Get(id int64) Cart {
 func (s *store) Save(c Cart) {
 	s.Lock()
 	defer s.Unlock()
-	s.carts[c.GetID()] = c
+	s.carts[c.GetID()] = fromCart(c)
 }
 
 // Delete remove a cart from the store

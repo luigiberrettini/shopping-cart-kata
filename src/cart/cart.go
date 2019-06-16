@@ -33,7 +33,6 @@ func NewCart(id int64) (Cart, error) {
 	return c, nil
 }
 
-// NewCart creates a new cart
 func fromCart(c Cart) Cart {
 	if c == nil {
 		return nil
