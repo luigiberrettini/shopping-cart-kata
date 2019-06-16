@@ -61,7 +61,33 @@ func TestAddTwoArticles(t *testing.T) {
 	}
 }
 
-func TestAddSameArticleTwice(t *testing.T) {
+func TestFailWhenAddomgSameArticleTwice(t *testing.T) {
+	const (
+		cartID = 1
+		artID  = "article"
+		artQty = 2
+		nItems = 1
+	)
+	cart, _ := NewCart(cartID)
+	cart.AddArticle(artID, artQty)
+	if cart.AddArticle(artID, artQty) == nil {
+		t.Error("It was possible to add an article more than once")
+	}
+	cartQty := cart.GetQuantity()
+	items := cart.GetItems()
+	if cartQty != artQty {
+		t.Errorf("Cart quantity is %d instead of %d", cartQty, artQty)
+	}
+	if n := len(items); n != nItems {
+		t.Fatalf("Cart contains %d items instead of %d", n, nItems)
+	}
+	if items[0].ID != artID || items[0].Quantity != artQty {
+		msg := `Cart item {%v} does not match article { "id": %q, "quantity": %d\n}`
+		t.Errorf(msg, items[0], artID, artQty)
+	}
+}
+
+func TestChangeArticleQuantity(t *testing.T) {
 	const (
 		cartID = 1
 		artID  = "article"
@@ -71,7 +97,7 @@ func TestAddSameArticleTwice(t *testing.T) {
 	)
 	cart, _ := NewCart(cartID)
 	cart.AddArticle(artID, artQty)
-	cart.AddArticle(artID, artQty)
+	cart.SetArticleQty(artID, totQty)
 	cartQty := cart.GetQuantity()
 	items := cart.GetItems()
 	if cartQty != totQty {

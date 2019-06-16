@@ -10,7 +10,8 @@ type Cart interface {
 	GetID() int64
 	GetQuantity() int
 	GetItems() []Item
-	AddArticle(id string, quantity int)
+	AddArticle(id string, quantity int) error
+	SetArticleQty(id string, quantity int) error
 }
 
 type cart struct {
@@ -65,12 +66,24 @@ func (c *cart) GetItems() []Item {
 }
 
 // AddArticle add the id and quantity of an article to the cart
-func (c *cart) AddArticle(id string, quantity int) {
-	if _, ok := c.items[id]; !ok {
-		c.items[id] = &Item{id, 0}
+func (c *cart) AddArticle(id string, quantity int) error {
+	if _, ok := c.items[id]; ok {
+		return fmt.Errorf("Item %s is already existent", id)
 	}
-	c.items[id].Quantity += quantity
+	c.items[id] = &Item{id, 0}
+	c.items[id].Quantity = quantity
 	c.quantity += quantity
+	return nil
+}
+
+func (c *cart) SetArticleQty(id string, quantity int) error {
+	item, ok := c.items[id]
+	if !ok {
+		return fmt.Errorf("Item %s is not existent", id)
+	}
+	c.quantity = c.quantity - item.Quantity + quantity
+	item.Quantity = quantity
+	return nil
 }
 
 func (c *cart) String() string {
