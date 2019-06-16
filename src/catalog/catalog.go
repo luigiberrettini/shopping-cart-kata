@@ -3,6 +3,7 @@ package catalog
 // Catalog represents a catalog
 type Catalog interface {
 	GetArticles() []Article
+	GetArticle(code string) (Article, bool)
 	GetPrices(codes []string) map[string]float64
 }
 
@@ -42,6 +43,12 @@ func (c *catalog) GetArticles() []Article {
 		i++
 	}
 	return articles
+}
+
+// GetArticle returns the catalog item for a given code
+func (c *catalog) GetArticle(code string) (Article, bool) {
+	ap, ok := c.articles[code]
+	return *ap, ok
 }
 
 // GetPrices returns pairs of article id and price
