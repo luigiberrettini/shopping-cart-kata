@@ -1,9 +1,6 @@
 package cart
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 func TestSaveNewCart(t *testing.T) {
 	const (
@@ -17,11 +14,11 @@ func TestSaveNewCart(t *testing.T) {
 	store.Save(cartIn)
 	cartOut := store.Get(cartID)
 	if err != nil {
-		t.Error(fmt.Printf("Error during cart creation %s", err))
+		t.Errorf("Error during cart creation %s", err)
 	}
 	outItem := cartOut.GetItems()[0]
 	if cartOut.GetID() != cartID || outItem.ID != artID || outItem.Quantity != artQty {
-		t.Error(fmt.Printf("Cart in store {%v} does not match the one to save {%v}", cartOut, cartIn))
+		t.Errorf("Cart in store {%v} does not match the one to save {%v}", cartOut, cartIn)
 	}
 }
 
@@ -32,9 +29,9 @@ func TestDeleteExistentCart(t *testing.T) {
 	store.Save(cart)
 	store.Delete(cartID)
 	if err != nil {
-		t.Error(fmt.Printf("Error during cart creation %s", err))
+		t.Errorf("Error during cart creation %s", err)
 	}
 	if c := store.Get(cartID); c != DummyCart {
-		t.Error(fmt.Printf("Deleted cart still in store {%v}", cart))
+		t.Errorf("Deleted cart still in store {%v}", cart)
 	}
 }

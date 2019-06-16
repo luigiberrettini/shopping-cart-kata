@@ -1,9 +1,6 @@
 package catalog
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 func TestRetrievePrices(t *testing.T) {
 	cat := DefaultCatalog
@@ -16,6 +13,6 @@ func TestRetrievePrices(t *testing.T) {
 		}
 	}
 	if len(missing) > 0 {
-		t.Error(fmt.Printf("Price not retrieved for article codes {%v}", missing))
+		t.Errorf("Price not retrieved for article codes {%v}", missing)
 	}
 }
