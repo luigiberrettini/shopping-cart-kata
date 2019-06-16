@@ -1,4 +1,4 @@
-package shoppingcart
+package cart
 
 import "fmt"
 

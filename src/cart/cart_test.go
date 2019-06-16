@@ -1,4 +1,4 @@
-package shoppingcart
+package cart
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewCartIsEmpty(t *testing.T) {
-	cart := NewCart(0)
+	cart, _ := NewCart(1)
 	if cart.GetQuantity() != 0 || len(cart.GetItems()) != 0 {
 		t.Error(`New cart contains items`)
 	}
@@ -19,7 +19,7 @@ func TestAddOneArticle(t *testing.T) {
 		artQty = 2
 		nArt   = 1
 	)
-	cart := NewCart(cartID)
+	cart, _ := NewCart(cartID)
 	cart.AddArticle(artID, artQty)
 	cartQty := cart.GetQuantity()
 	items := cart.GetItems()
@@ -44,7 +44,7 @@ func TestAddTwoArticles(t *testing.T) {
 		artQty2 = 1
 		nItems  = 2
 	)
-	cart := NewCart(cartID)
+	cart, _ := NewCart(cartID)
 	cart.AddArticle(artID1, artQty1)
 	cart.AddArticle(artID2, artQty2)
 	cartQty := cart.GetQuantity()
@@ -72,7 +72,7 @@ func TestAddSameArticleTwice(t *testing.T) {
 		totQty = artQty + artQty
 		nItems = 1
 	)
-	cart := NewCart(cartID)
+	cart, _ := NewCart(cartID)
 	cart.AddArticle(artID, artQty)
 	cart.AddArticle(artID, artQty)
 	cartQty := cart.GetQuantity()
