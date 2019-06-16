@@ -2,6 +2,7 @@ package pricedcart
 
 import (
 	"cart"
+	"fmt"
 	"promotion"
 )
 
@@ -92,4 +93,9 @@ func (c *pricedCart) ApplyPromotions(ps promotion.PromoSet) PricedCart {
 	pc.subTotal = ps.CartSubtotalDiscount.Discount.ApplyTo(c.subTotal)
 	// ps.ShippingDiscount is used by checkout, not cart
 	return pc
+}
+
+func (c *pricedCart) String() string {
+	f := `{ "id": %d, "quantity": %d, "subTotal": %g, "items": [%v]}`
+	return fmt.Sprintf(f, c.GetID(), c.GetQuantity(), c.GetSubtotal(), c.GetItems())
 }
