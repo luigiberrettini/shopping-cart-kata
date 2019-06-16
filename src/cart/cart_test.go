@@ -111,3 +111,58 @@ func TestChangeArticleQuantity(t *testing.T) {
 		t.Errorf(msg, items[0], artID, totQty)
 	}
 }
+
+func TestAddAlreadyExistentItem(t *testing.T) {
+	const (
+		cartID = 1
+		artID  = "article"
+		artQty = 2
+	)
+	cart, _ := NewCart(cartID)
+	cart.AddArticle(artID, artQty)
+	if err := cart.AddArticle(artID, artQty); err != ErrItemAlreadyExistent {
+		t.Errorf("Add existent item: %v instead of %v", err, ErrItemAlreadyExistent)
+	}
+}
+
+func TestSetQtyOnNonExistentItem(t *testing.T) {
+	const (
+		cartID = 1
+		artID  = "article"
+		wArtID = "0"
+		artQty = 2
+	)
+	cart, _ := NewCart(cartID)
+	cart.AddArticle(artID, artQty)
+	if err := cart.SetArticleQty(wArtID, artQty); err != ErrItemNotExistent {
+		t.Errorf("Set quantity of non existent item: %v instead of %v", err, ErrItemNotExistent)
+	}
+}
+
+func TestNonPositiveArticleQuantity(t *testing.T) {
+	const (
+		cartID  = 1
+		artID   = "article"
+		artQty  = 2
+		zArtQty = 0
+		nArtQty = -1
+	)
+	cart, _ := NewCart(cartID)
+	err1 := cart.AddArticle(artID, zArtQty)
+	err2 := cart.AddArticle(artID, nArtQty)
+	cart.AddArticle(artID, artQty)
+	err3 := cart.SetArticleQty(artID, zArtQty)
+	err4 := cart.SetArticleQty(artID, nArtQty)
+	if err1 != ErrNonPositiveQuantity {
+		t.Errorf("Zero article quantity on add: %v instead of %v", err1, ErrNonPositiveQuantity)
+	}
+	if err2 != ErrNonPositiveQuantity {
+		t.Errorf("Negative article quantity on add: %v instead of %v", err2, ErrNonPositiveQuantity)
+	}
+	if err3 != ErrNonPositiveQuantity {
+		t.Errorf("Zero article quantity on set: %v instead of %v", err3, ErrNonPositiveQuantity)
+	}
+	if err4 != ErrNonPositiveQuantity {
+		t.Errorf("Negative article quantity on set: %v instead of %v", err4, ErrNonPositiveQuantity)
+	}
+}

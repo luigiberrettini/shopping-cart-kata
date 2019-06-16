@@ -5,6 +5,15 @@ import (
 	"fmt"
 )
 
+// ErrItemAlreadyExistent when the cart item is already existent
+var ErrItemAlreadyExistent = errors.New("Item is already existent")
+
+// ErrItemNotExistent when the cart item is not existent
+var ErrItemNotExistent = errors.New("Item is not existent")
+
+// ErrNonPositiveQuantity when the item quantity is zero or negative
+var ErrNonPositiveQuantity = errors.New("Quantity must be positive")
+
 // Cart represents a shopping cart
 type Cart interface {
 	GetID() int64
@@ -67,8 +76,11 @@ func (c *cart) GetItems() []Item {
 
 // AddArticle add the id and quantity of an article to the cart
 func (c *cart) AddArticle(id string, quantity int) error {
+	if quantity <= 0 {
+		return ErrNonPositiveQuantity
+	}
 	if _, ok := c.items[id]; ok {
-		return fmt.Errorf("Item %s is already existent", id)
+		return ErrItemAlreadyExistent
 	}
 	c.items[id] = &Item{id, 0}
 	c.items[id].Quantity = quantity
@@ -77,9 +89,12 @@ func (c *cart) AddArticle(id string, quantity int) error {
 }
 
 func (c *cart) SetArticleQty(id string, quantity int) error {
+	if quantity <= 0 {
+		return ErrNonPositiveQuantity
+	}
 	item, ok := c.items[id]
 	if !ok {
-		return fmt.Errorf("Item %s is not existent", id)
+		return ErrItemNotExistent
 	}
 	c.quantity = c.quantity - item.Quantity + quantity
 	item.Quantity = quantity
@@ -87,5 +102,5 @@ func (c *cart) SetArticleQty(id string, quantity int) error {
 }
 
 func (c *cart) String() string {
-	return fmt.Sprintf(`{ "id": %d, "quantity": %d , "items": [%v]}`, c.GetID(), c.GetQuantity(), c.GetItems())
+	return fmt.Sprintf(`{ "id": %d, "quantity": %d, "items": [%v]}`, c.GetID(), c.GetQuantity(), c.GetItems())
 }
