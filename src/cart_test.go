@@ -29,7 +29,7 @@ func TestAddOneArticle(t *testing.T) {
 	if n := len(items); n != nArt {
 		t.Error(fmt.Printf("Cart contains %d items instead of %d", n, nArt))
 	}
-	if items[0].ID != artID || items[0].quantity != artQty {
+	if items[0].ID != artID || items[0].Quantity != artQty {
 		msg := `Cart item {%v} does not match article { "id": %q, "quantity": %d\n}`
 		t.Error(fmt.Printf(msg, items[0], artID, artQty))
 	}
@@ -56,10 +56,10 @@ func TestAddTwoArticles(t *testing.T) {
 		t.Error(fmt.Printf("Cart contains %d items instead of %d", n, nItems))
 	}
 	msg := `Cart item {%v} does not match article { "id": %q, "quantity": %d\n}`
-	if items[0].ID != artID1 || items[0].quantity != artQty1 {
+	if items[0].ID != artID1 || items[0].Quantity != artQty1 {
 		t.Error(fmt.Printf(msg, items[0], artID1, artQty1))
 	}
-	if items[1].ID != artID2 || items[1].quantity != artQty2 {
+	if items[1].ID != artID2 || items[1].Quantity != artQty2 {
 		t.Error(fmt.Printf(msg, items[1], artID2, artQty2))
 	}
 }
@@ -83,7 +83,7 @@ func TestAddSameArticleTwice(t *testing.T) {
 	if n := len(items); n != nItems {
 		t.Error(fmt.Printf("Cart contains %d items instead of %d", n, nItems))
 	}
-	if items[0].ID != artID || items[0].quantity != totQty {
+	if items[0].ID != artID || items[0].Quantity != totQty {
 		msg := `Cart item {%v} does not match article { "id": %q, "quantity": %d\n}`
 		t.Error(fmt.Printf(msg, items[0], artID, totQty))
 	}
