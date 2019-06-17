@@ -2,13 +2,12 @@ package promotion
 
 import (
 	"cart"
-	"catalog"
 	"testing"
 )
 
 func TestAddRule(t *testing.T) {
 	e := NewEngine().(*engine)
-	f1 := discountForThreeOrMore
+	f1 := DiscountForThreeOrMore
 	e.AddRule(&f1)
 	if e.numRules != 1 || len(e.rules) != 1 {
 		t.Errorf("No rule added")
@@ -17,7 +16,7 @@ func TestAddRule(t *testing.T) {
 
 func TestApplyRule(t *testing.T) {
 	e := NewEngine().(*engine)
-	f1 := discountForThreeOrMore
+	f1 := DiscountForThreeOrMore
 	id, _ := e.AddRule(&f1)
 	c, _ := cart.NewCart(1)
 	const (
@@ -28,7 +27,7 @@ func TestApplyRule(t *testing.T) {
 	c.AddArticle(artCod, artQty)
 	exp := CartItemDiscount{Discount: Discount{Mode: NewValue, Value: 19}, ItemID: artCod, AffectedQty: artQty}
 	promos := e.rules[id].apply(c, getPrices(c))
-	if n:=len(promos); n != 1 {
+	if n := len(promos); n != 1 {
 		t.Fatalf("Generated %d promos instead of 1", n)
 	}
 	disc := promos[0].(CartItemDiscount)
@@ -39,7 +38,7 @@ func TestApplyRule(t *testing.T) {
 
 func TestDiscountForThreeOrMore(t *testing.T) {
 	e := NewEngine().(*engine)
-	f1 := discountForThreeOrMore
+	f1 := DiscountForThreeOrMore
 	e.AddRule(&f1)
 	c, _ := cart.NewCart(1)
 	const (
@@ -61,7 +60,7 @@ func TestDiscountForThreeOrMore(t *testing.T) {
 
 func TestTwoForOne(t *testing.T) {
 	e := NewEngine().(*engine)
-	f1 := twoForOne
+	f1 := TwoForOne
 	e.AddRule(&f1)
 	const (
 		artCod  = "VOUCHER"
@@ -94,10 +93,9 @@ func TestTwoForOne(t *testing.T) {
 }
 
 func getPrices(c cart.Cart) map[string]float64 {
-	items := c.GetItems()
-	ids := make([]string, len(items))
-	for i, item := range items {
-		ids[i] = item.ID
+	return map[string]float64{
+		"VOUCHER": 5.0,
+		"TSHIRT":  20.0,
+		"MUG":     7.5,
 	}
-	return catalog.DefaultCatalog.GetPrices(ids)
 }

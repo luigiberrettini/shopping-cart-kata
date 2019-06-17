@@ -18,18 +18,6 @@ type engine struct {
 	rules    map[int64]rule
 }
 
-// DefaultEngine is a predefined filled catalog
-var DefaultEngine = defaultEngine()
-
-func defaultEngine() Engine {
-	e := NewEngine().(*engine)
-	f1 := twoForOne
-	f2 := discountForThreeOrMore
-	e.AddRule(&f1)
-	e.AddRule(&f2)
-	return e
-}
-
 // NewEngine creates a promotion engine
 func NewEngine() Engine {
 	e := new(engine)

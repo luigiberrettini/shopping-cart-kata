@@ -10,7 +10,8 @@ func (r rule) apply(c cart.Cart, prices map[string]float64) []interface{} {
 	return (*r.funcPtr)(c, prices)
 }
 
-func twoForOne(c cart.Cart, prices map[string]float64) []interface{} {
+// TwoForOne promotion
+func TwoForOne(c cart.Cart, prices map[string]float64) []interface{} {
 	items := c.GetItems()
 	promos := make([]interface{}, len(items))
 	i := 0
@@ -27,7 +28,8 @@ func twoForOne(c cart.Cart, prices map[string]float64) []interface{} {
 	return promos
 }
 
-func discountForThreeOrMore(c cart.Cart, prices map[string]float64) []interface{} {
+// DiscountForThreeOrMore promotion
+func DiscountForThreeOrMore(c cart.Cart, prices map[string]float64) []interface{} {
 	items := c.GetItems()
 	promos := make([]interface{}, len(items))
 	i := 0
