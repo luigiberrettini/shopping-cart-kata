@@ -3,7 +3,10 @@ package catalog
 import "testing"
 
 func TestRetrievePrices(t *testing.T) {
-	cat := DefaultCatalog
+	cat := NewCatalog()
+	cat.AddArticle(Article{Code: "VOUCHER", Name: "Voucher", Price: 5.0})
+	cat.AddArticle(Article{Code: "TSHIRT", Name: "T-Shirt", Price: 20.0})
+	cat.AddArticle(Article{Code: "MUG", Name: "Coffee Mug", Price: 7.5})
 	codes := []string{"MUG", "VOUCHER"}
 	res := cat.GetPrices(codes)
 	var missing []string

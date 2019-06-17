@@ -9,6 +9,8 @@ type Article struct {
 	Price float64
 }
 
+var DummyArticle Article
+
 func (a Article) String() string {
 	return fmt.Sprintf(`{ "code": %q, "name": %s, "price": %g }`, a.Code, a.Name, a.Price)
 }
