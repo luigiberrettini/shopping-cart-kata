@@ -37,6 +37,12 @@ func (a *App) createCart(w http.ResponseWriter, r *http.Request) {
 func (a *App) addArticleToCart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	wid := vars["id"]
+	if im := r.Header.Get("If-Match"); len(im) != 0 {
+		if _, ok := a.CartCache.GetByEtagWithID(im, wid); !ok {
+			w.WriteHeader(http.StatusPreconditionFailed)
+			return
+		}
+	}
 	id, err := a.decode(wid)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "The system encountered an unxepected condition")
@@ -106,6 +112,12 @@ func (a *App) getCart(w http.ResponseWriter, r *http.Request) {
 func (a *App) deleteCart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	wid := vars["id"]
+	if im := r.Header.Get("If-Match"); len(im) != 0 {
+		if _, ok := a.CartCache.GetByEtagWithID(im, wid); !ok {
+			w.WriteHeader(http.StatusPreconditionFailed)
+			return
+		}
+	}
 	id, err := a.decode(wid)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "The system encountered an unxepected condition")

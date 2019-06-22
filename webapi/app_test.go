@@ -18,6 +18,16 @@ import (
 	"testing"
 )
 
+type dummyIDGenerator struct {
+	id int64
+}
+
+// NextID id generation
+func (g *dummyIDGenerator) NextID() int64 {
+	g.id++
+	return g.id
+}
+
 type uncache struct{}
 
 func (c *uncache) GetByEtagWithID(etag string, wid string) (cache.Etagger, bool) {
@@ -35,7 +45,7 @@ func (c *uncache) Remove(wid string) {
 
 func TestHash(t *testing.T) {
 	const id = 1
-	a := testApp()
+	a := testApp(new(uncache))
 	wid, err := a.encode(id)
 	if err != nil {
 		t.Fatalf("Encoding error %v", err)
@@ -65,7 +75,7 @@ func TestCreateWihtNonInitializedAppSvc(t *testing.T) {
 }
 
 func TestGetCartWithArticles(t *testing.T) {
-	a := testApp()
+	a := testApp(new(uncache))
 	req, _ := http.NewRequest("POST", "/carts", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusCreated, response)
@@ -122,14 +132,14 @@ func TestGetCartWithArticles(t *testing.T) {
 }
 
 func TestGetNonExistentCart(t *testing.T) {
-	a := testApp()
+	a := testApp(new(uncache))
 	req, _ := http.NewRequest("GET", "/carts/myHash", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusNotFound, response)
 }
 
-func TestGetCreatedCart(t *testing.T) {
-	a := testApp()
+func TestGetCreatedCartWithNormalReq(t *testing.T) {
+	a := testApp(new(uncache))
 	req, _ := http.NewRequest("POST", "/carts", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusCreated, response)
@@ -169,8 +179,53 @@ func TestGetCreatedCart(t *testing.T) {
 	}
 }
 
+func TestGetCreatedCartWithCondReq(t *testing.T) {
+	a := testApp(cache.NewCache())
+	req, _ := http.NewRequest("POST", "/carts", nil)
+	response := executeRequest(a, req)
+	checkResponseCode(t, http.StatusCreated, response)
+	var c cartVM
+	if err := json.NewDecoder(response.Body).Decode(&c); err != nil {
+		t.Errorf("Error decoding response.Body: %s", err)
+	}
+	req, _ = http.NewRequest("GET", c.URL, nil)
+	req.Header.Add("If-None-Match", response.Header().Get("ETag"))
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusNotModified, response)
+}
+
+func TestDeletedCachedCart(t *testing.T) {
+	a := testApp(cache.NewCache())
+	req, _ := http.NewRequest("POST", "/carts", nil)
+	response := executeRequest(a, req)
+	checkResponseCode(t, http.StatusCreated, response)
+
+	var c cartVM
+	if err := json.NewDecoder(response.Body).Decode(&c); err != nil {
+		t.Errorf("Error decoding response.Body: %s", err)
+	}
+
+	req, _ = http.NewRequest("DELETE", c.URL, nil)
+	req.Header.Add("If-Match", "fakeEtag")
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusPreconditionFailed, response)
+
+	req, _ = http.NewRequest("DELETE", c.URL, nil)
+	req.Header.Add("If-Match", response.Header().Get("ETag"))
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusNoContent, response)
+}
+
+func TestDeleteNonCachedCart(t *testing.T) {
+	a := testApp(new(uncache))
+	req, _ := http.NewRequest("DELETE", "/carts/1", nil)
+	req.Header.Add("If-Match", "fakeEtag")
+	response := executeRequest(a, req)
+	checkResponseCode(t, http.StatusPreconditionFailed, response)
+}
+
 func TestGetDeletedCart(t *testing.T) {
-	a := testApp()
+	a := testApp(new(uncache))
 	req, _ := http.NewRequest("POST", "/carts", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusCreated, response)
@@ -188,15 +243,15 @@ func TestGetDeletedCart(t *testing.T) {
 	checkResponseCode(t, http.StatusNotFound, response)
 }
 
-func testApp() *App {
+func testApp(c cache.Cache) *App {
 	cfg := Config{CompanyName: "CmPnY", HashSalt: "a9a21fd753f94"}
-	a := createApp(cfg)
+	a := createApp(cfg, c)
 	a.ConfigRoutes()
 	a.ConfigURLBuilders()
 	return a
 }
 
-func createApp(cfg Config) *App {
+func createApp(cfg Config, c cache.Cache) *App {
 	return &App{
 		AppSvc: appservice.AppService{
 			CartIDG: new(dummyIDGenerator),
@@ -206,18 +261,8 @@ func createApp(cfg Config) *App {
 		},
 		HashGen:   createHashGenerator(cfg.HashSalt),
 		Router:    mux.NewRouter().StrictSlash(true),
-		CartCache: new(uncache),
+		CartCache: c,
 	}
-}
-
-type dummyIDGenerator struct {
-	id int64
-}
-
-// NextID id generation
-func (g *dummyIDGenerator) NextID() int64 {
-	g.id++
-	return g.id
 }
 
 func createHashGenerator(salt string) *hashids.HashID {
