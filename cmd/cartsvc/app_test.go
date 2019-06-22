@@ -47,23 +47,23 @@ func TestHash(t *testing.T) {
 }
 
 func TestCreateWihtNonInitializedAppSvc(t *testing.T) {
-	cfg := Config{CompanyName: "", HashSalt: ""}
+	cfg := Config{CompanyName: "", HashSalt: "", ListenAddress: "127.0.0.1"}
 	a := &App{
 		AppSvc:    appservice.AppService{CartIDG: nil, CartDB: nil, Catalog: nil, PromEng: nil},
 		HashGen:   createHashGenerator(cfg.HashSalt),
 		Router:    mux.NewRouter().StrictSlash(true),
 		CartCache: new(uncache),
 	}
-	a.ConfigRoutes()
+	a.ConfigRoutes(cfg.ListenAddress)
 	a.ConfigURLBuilders()
-	req, _ := http.NewRequest("POST", "/carts", nil)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1/carts", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusInternalServerError, response)
 }
 
 func TestUnsuccessfulAddArticle(t *testing.T) {
 	a := testApp(new(uncache))
-	req, _ := http.NewRequest("POST", "/carts", nil)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1/carts", nil)
 	response := executeRequest(a, req)
 
 	var c cartVM
@@ -97,7 +97,7 @@ func TestUnsuccessfulAddArticle(t *testing.T) {
 
 func TestGetCartWithArticles(t *testing.T) {
 	a := testApp(new(uncache))
-	req, _ := http.NewRequest("POST", "/carts", nil)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1/carts", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusCreated, response)
 
@@ -157,14 +157,14 @@ func TestGetCartWithArticles(t *testing.T) {
 
 func TestGetNonExistentCart(t *testing.T) {
 	a := testApp(new(uncache))
-	req, _ := http.NewRequest("GET", "/carts/myHash", nil)
+	req, _ := http.NewRequest("GET", "http://127.0.0.1/carts/myHash", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusNotFound, response)
 }
 
 func TestGetCreatedCartWithNormalReq(t *testing.T) {
 	a := testApp(new(uncache))
-	req, _ := http.NewRequest("POST", "/carts", nil)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1/carts", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusCreated, response)
 
@@ -205,7 +205,7 @@ func TestGetCreatedCartWithNormalReq(t *testing.T) {
 
 func TestGetCreatedCartWithCondReq(t *testing.T) {
 	a := testApp(cache.NewCache())
-	req, _ := http.NewRequest("POST", "/carts", nil)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1/carts", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusCreated, response)
 	var c cartVM
@@ -220,7 +220,7 @@ func TestGetCreatedCartWithCondReq(t *testing.T) {
 
 func TestDeletedCachedCart(t *testing.T) {
 	a := testApp(cache.NewCache())
-	req, _ := http.NewRequest("POST", "/carts", nil)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1/carts", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusCreated, response)
 
@@ -242,7 +242,7 @@ func TestDeletedCachedCart(t *testing.T) {
 
 func TestDeleteNonCachedCart(t *testing.T) {
 	a := testApp(new(uncache))
-	req, _ := http.NewRequest("DELETE", "/carts/1", nil)
+	req, _ := http.NewRequest("DELETE", "http://127.0.0.1/carts/1", nil)
 	req.Header.Add("If-Match", "fakeEtag")
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusPreconditionFailed, response)
@@ -250,7 +250,7 @@ func TestDeleteNonCachedCart(t *testing.T) {
 
 func TestGetDeletedCart(t *testing.T) {
 	a := testApp(new(uncache))
-	req, _ := http.NewRequest("POST", "/carts", nil)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1/carts", nil)
 	response := executeRequest(a, req)
 	checkResponseCode(t, http.StatusCreated, response)
 
@@ -268,7 +268,7 @@ func TestGetDeletedCart(t *testing.T) {
 }
 
 func testApp(c cache.Cache) *App {
-	cfg := Config{CompanyName: "CmPnY", HashSalt: "a9a21fd753f94"}
+	cfg := Config{CompanyName: "CmPnY", HashSalt: "a9a21fd753f94", ListenAddress: "127.0.0.1"}
 	a := &App{
 		AppSvc: appservice.AppService{
 			CartIDG: new(generator),
@@ -280,7 +280,7 @@ func testApp(c cache.Cache) *App {
 		Router:    mux.NewRouter().StrictSlash(true),
 		CartCache: c,
 	}
-	a.ConfigRoutes()
+	a.ConfigRoutes(cfg.ListenAddress)
 	a.ConfigURLBuilders()
 	return a
 }

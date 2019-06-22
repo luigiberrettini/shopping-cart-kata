@@ -22,12 +22,12 @@ func (a *App) createCart(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "The system encountered an unxepected condition")
 		return
 	}
-	url, err := buildCartURL(wid, r.URL)
+	url, err := buildCartURL(wid)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "The system encountered an unxepected condition")
 		return
 	}
-	c := &cartVM{ID: wid, URL: url}
+	c := &cartVM{ID: wid, URL: url.String()}
 	c.ComputeEtag()
 	a.CartCache.AddOrReplace(wid, c)
 	w.Header().Set("Location", c.URL)
@@ -76,7 +76,8 @@ func (a *App) addArticleToCart(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnprocessableEntity, "Article quantity must be positive")
 		return
 	}
-	article.CartURL, err = buildCartURL(wid, r.URL)
+	url, err := buildCartURL(wid)
+	article.CartURL = url.String()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "The system encountered an unxepected condition")
 		return

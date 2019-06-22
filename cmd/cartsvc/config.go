@@ -5,5 +5,5 @@ type Config struct {
 	CompanyName   string
 	HashSalt      string
 	ListenAddress string
-	EnableCache   bool
+	Authority     string
 }

@@ -15,7 +15,7 @@ import (
 func main() {
 	cfg := loadConfig()
 	a := createApp(cfg)
-	a.ConfigRoutes()
+	a.ConfigRoutes(cfg.Authority)
 	a.ConfigURLBuilders()
 	a.Run(cfg.ListenAddress)
 }
@@ -24,11 +24,13 @@ func loadConfig() Config {
 	var companyName = flag.String("company", "AcME", "Company name for catalog articles")
 	var hashSalt = flag.String("salt", "a9a21fd753f9431381c3980c7664aab6", "Hash salt for REST IDs")
 	var listenAddress = flag.String("listen", "127.0.0.1:8000", "Address:port on which to listen")
+	var authority = flag.String("authority", "127.0.0.1:8000", "Authority part of REST URLs")
 	flag.Parse()
 	return Config{
 		CompanyName:   *companyName,
 		HashSalt:      *hashSalt,
 		ListenAddress: *listenAddress,
+		Authority:     *authority,
 	}
 }
 
