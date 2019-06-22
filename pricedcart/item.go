@@ -1,8 +1,8 @@
 package pricedcart
 
 import (
-	"cart"
 	"fmt"
+	"shopping-cart-kata/cart"
 )
 
 // Item represents a shopping cart item with price

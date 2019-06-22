@@ -1,11 +1,11 @@
 package appservice
 
 import (
-	"cart"
-	"catalog"
 	"errors"
-	"pricedcart"
-	"promotion"
+	"shopping-cart-kata/cart"
+	"shopping-cart-kata/catalog"
+	"shopping-cart-kata/pricedcart"
+	"shopping-cart-kata/promotion"
 )
 
 // ErrNotInitialized when there are problems with the dependencies AppService relies on

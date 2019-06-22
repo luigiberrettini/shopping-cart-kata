@@ -1,7 +1,7 @@
 package promotion
 
 import (
-	"cart"
+	"shopping-cart-kata/cart"
 	"testing"
 )
 

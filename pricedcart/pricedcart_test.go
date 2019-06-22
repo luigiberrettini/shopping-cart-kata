@@ -1,8 +1,8 @@
 package pricedcart
 
 import (
-	"cart"
-	"promotion"
+	"shopping-cart-kata/cart"
+	"shopping-cart-kata/promotion"
 	"testing"
 )
 

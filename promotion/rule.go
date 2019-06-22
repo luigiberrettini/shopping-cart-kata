@@ -1,6 +1,6 @@
 package promotion
 
-import "cart"
+import "shopping-cart-kata/cart"
 
 type rule struct {
 	funcPtr *func(c cart.Cart, prices map[string]float64) []interface{}

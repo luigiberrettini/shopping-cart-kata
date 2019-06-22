@@ -1,10 +1,10 @@
 package appservice
 
 import (
-	"cart"
-	"catalog"
-	"pricedcart"
-	"promotion"
+	"shopping-cart-kata/cart"
+	"shopping-cart-kata/catalog"
+	"shopping-cart-kata/pricedcart"
+	"shopping-cart-kata/promotion"
 	"testing"
 )
 
