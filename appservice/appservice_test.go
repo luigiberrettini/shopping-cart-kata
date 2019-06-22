@@ -75,18 +75,18 @@ func TestAddArticleToCart(t *testing.T) {
 	if err := s.AddArticleToCart(cartID, wrongArtCod, wrongArtQty1); err != ErrArtNotFound {
 		t.Fatalf("Add non existent article to cart: %v instead of %v", err, ErrArtNotFound)
 	}
-	if err := s.AddArticleToCart(cartID, artCod, wrongArtQty1); err != cart.ErrNonPositiveQuantity {
-		t.Fatalf("Add article with quantity 0 to cart: %v instead of %v", err, cart.ErrNonPositiveQuantity)
+	if err := s.AddArticleToCart(cartID, artCod, wrongArtQty1); err != ErrNonPositiveArtQty {
+		t.Fatalf("Add article with quantity 0 to cart: %v instead of %v", err, ErrNonPositiveArtQty)
 	}
-	if err := s.AddArticleToCart(cartID, artCod, wrongArtQty2); err != cart.ErrNonPositiveQuantity {
-		t.Fatalf("Add article with negative quantity to cart: %v instead of %v", err, cart.ErrNonPositiveQuantity)
+	if err := s.AddArticleToCart(cartID, artCod, wrongArtQty2); err != ErrNonPositiveArtQty {
+		t.Fatalf("Add article with negative quantity to cart: %v instead of %v", err, ErrNonPositiveArtQty)
 	}
 	if err := s.AddArticleToCart(cartID, artCod, artQty); err != nil {
 		msg := "Error %v adding article { \"code\": %q, \"quantity\": %d } to cart with ID %d"
 		t.Fatalf(msg, err, artCod, artQty, cartID)
 	}
-	if err := s.AddArticleToCart(cartID, artCod, artQty); err != cart.ErrItemAlreadyExistent {
-		t.Fatalf("Add already existent article to cart: %v instead of %v", err, cart.ErrItemAlreadyExistent)
+	if err := s.AddArticleToCart(cartID, artCod, artQty); err != ErrArtAlreadyAdded {
+		t.Fatalf("Add already existent article to cart: %v instead of %v", err, ErrArtAlreadyAdded)
 	}
 	pc, _ := s.GetCart(id)
 	c, _ := cart.NewCart(cartID)

@@ -1,32 +1,19 @@
-package webapi
+package main
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/speps/go-hashids"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"shopping-cart-kata/appservice"
 	"shopping-cart-kata/cache"
 	"shopping-cart-kata/cart"
-	"shopping-cart-kata/catalog"
-	"shopping-cart-kata/promotion"
 	"strings"
 	"testing"
 )
-
-type dummyIDGenerator struct {
-	id int64
-}
-
-// NextID id generation
-func (g *dummyIDGenerator) NextID() int64 {
-	g.id++
-	return g.id
-}
 
 type uncache struct{}
 
@@ -74,6 +61,40 @@ func TestCreateWihtNonInitializedAppSvc(t *testing.T) {
 	checkResponseCode(t, http.StatusInternalServerError, response)
 }
 
+func TestUnsuccessfulAddArticle(t *testing.T) {
+	a := testApp(new(uncache))
+	req, _ := http.NewRequest("POST", "/carts", nil)
+	response := executeRequest(a, req)
+
+	var c cartVM
+	json.NewDecoder(response.Body).Decode(&c)
+	url := fmt.Sprintf("%s/items", c.URL)
+	art := a.AppSvc.Catalog.GetArticles()[0]
+	item := itemCreateVM{ID: art.Code, Quantity: 5}
+
+	item.ID = "notValid"
+	j, _ := json.Marshal(item)
+	b := bytes.NewBuffer(j)
+	req, _ = http.NewRequest("POST", url, b)
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusUnprocessableEntity, response)
+
+	item.ID = art.Code
+	item.Quantity = 0
+	j, _ = json.Marshal(item)
+	b = bytes.NewBuffer(j)
+	req, _ = http.NewRequest("POST", url, b)
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusUnprocessableEntity, response)
+
+	item.Quantity = -2
+	j, _ = json.Marshal(item)
+	b = bytes.NewBuffer(j)
+	req, _ = http.NewRequest("POST", url, b)
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusUnprocessableEntity, response)
+}
+
 func TestGetCartWithArticles(t *testing.T) {
 	a := testApp(new(uncache))
 	req, _ := http.NewRequest("POST", "/carts", nil)
@@ -95,6 +116,9 @@ func TestGetCartWithArticles(t *testing.T) {
 	req, _ = http.NewRequest("POST", url, b)
 	response = executeRequest(a, req)
 	checkResponseCode(t, http.StatusOK, response)
+
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusBadRequest, response)
 
 	req, _ = http.NewRequest("GET", c.URL, nil)
 	response = executeRequest(a, req)
@@ -245,16 +269,9 @@ func TestGetDeletedCart(t *testing.T) {
 
 func testApp(c cache.Cache) *App {
 	cfg := Config{CompanyName: "CmPnY", HashSalt: "a9a21fd753f94"}
-	a := createApp(cfg, c)
-	a.ConfigRoutes()
-	a.ConfigURLBuilders()
-	return a
-}
-
-func createApp(cfg Config, c cache.Cache) *App {
-	return &App{
+	a := &App{
 		AppSvc: appservice.AppService{
-			CartIDG: new(dummyIDGenerator),
+			CartIDG: new(generator),
 			CartDB:  cart.NewStore(),
 			Catalog: createCatalog(cfg.CompanyName),
 			PromEng: createPromoEngine(),
@@ -263,46 +280,9 @@ func createApp(cfg Config, c cache.Cache) *App {
 		Router:    mux.NewRouter().StrictSlash(true),
 		CartCache: c,
 	}
-}
-
-func createHashGenerator(salt string) *hashids.HashID {
-	hd := hashids.NewData()
-	hd.Salt = salt
-	hd.MinLength = 32
-	hg, err := hashids.NewWithData(hd)
-	if err != nil {
-		panic(err)
-	}
-	return hg
-}
-
-func createCatalog(company string) catalog.Catalog {
-	c := catalog.NewCatalog()
-	c.AddArticle(catalog.Article{
-		Code:  "VOUCHER",
-		Name:  fmt.Sprintf("%s Voucher", company),
-		Price: 5.0,
-	})
-	c.AddArticle(catalog.Article{
-		Code:  "TSHIRT",
-		Name:  fmt.Sprintf("%s T-Shirt", company),
-		Price: 20.0,
-	})
-	c.AddArticle(catalog.Article{
-		Code:  "MUG",
-		Name:  fmt.Sprintf("%s Coffee Mug", company),
-		Price: 7.5,
-	})
-	return c
-}
-
-func createPromoEngine() promotion.Engine {
-	e := promotion.NewEngine()
-	f1 := promotion.TwoForOne
-	f2 := promotion.DiscountForThreeOrMore
-	e.AddRule(&f1)
-	e.AddRule(&f2)
-	return e
+	a.ConfigRoutes()
+	a.ConfigURLBuilders()
+	return a
 }
 
 func executeRequest(a *App, req *http.Request) *httptest.ResponseRecorder {

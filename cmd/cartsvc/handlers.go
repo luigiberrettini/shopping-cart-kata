@@ -1,4 +1,4 @@
-package webapi
+package main
 
 import (
 	"encoding/json"
@@ -45,16 +45,16 @@ func (a *App) addArticleToCart(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := a.decode(wid)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "The system encountered an unxepected condition")
+		respondWithError(w, http.StatusNotFound, "Invalid cart ID")
 		return
 	}
 	var article itemCreateVM
 	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
 	if err := decoder.Decode(&article); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	defer r.Body.Close()
 	err = a.AppSvc.AddArticleToCart(id, article.ID, article.Quantity)
 	if err == appservice.ErrNotInitialized {
 		respondWithError(w, http.StatusInternalServerError, "The system is not configured properly")
@@ -66,6 +66,14 @@ func (a *App) addArticleToCart(w http.ResponseWriter, r *http.Request) {
 	}
 	if err == appservice.ErrArtNotFound {
 		respondWithError(w, http.StatusUnprocessableEntity, "The article does not exist")
+		return
+	}
+	if err == appservice.ErrArtAlreadyAdded {
+		respondWithError(w, http.StatusBadRequest, "Article already added")
+		return
+	}
+	if err == appservice.ErrNonPositiveArtQty {
+		respondWithError(w, http.StatusUnprocessableEntity, "Article quantity must be positive")
 		return
 	}
 	article.CartURL, err = buildCartURL(wid, r.URL)
@@ -86,7 +94,7 @@ func (a *App) getCart(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := a.decode(wid)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "The cart cannot be found")
+		respondWithError(w, http.StatusNotFound, "Invalid cart ID")
 		return
 	}
 	pc, err := a.AppSvc.GetCart(id)
@@ -120,7 +128,7 @@ func (a *App) deleteCart(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := a.decode(wid)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "The system encountered an unxepected condition")
+		respondWithError(w, http.StatusNotFound, "Invalid cart ID")
 		return
 	}
 	err = a.AppSvc.DeleteCart(id)

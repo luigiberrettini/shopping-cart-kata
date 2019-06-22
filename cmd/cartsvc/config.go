@@ -1,4 +1,4 @@
-package webapi
+package main
 
 // Config represents the app configuration
 type Config struct {

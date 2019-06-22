@@ -1,4 +1,4 @@
-package webapi
+package main
 
 import "shopping-cart-kata/pricedcart"
 

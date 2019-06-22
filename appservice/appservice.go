@@ -20,6 +20,12 @@ var ErrCartNotFound = errors.New("Unable to find the cart")
 // ErrArtNotFound when the article is not present
 var ErrArtNotFound = errors.New("Unable to find the article")
 
+// ErrNonPositiveArtQty when the article is not present
+var ErrNonPositiveArtQty = errors.New("Article quantity must be positive")
+
+// ErrArtAlreadyAdded when the article is not present
+var ErrArtAlreadyAdded = errors.New("Article already in the cart")
+
 // ErrPromoRulesApplication when there is an error applying promotion rules
 var ErrPromoRulesApplication = errors.New("Error applying promotion rules")
 
@@ -63,8 +69,11 @@ func (s AppService) AddArticleToCart(cartID int64, artCod string, quantity int) 
 		return ErrArtNotFound
 	}
 	err := c.AddArticle(a.Code, quantity)
-	if err != nil {
-		return err
+	if err == cart.ErrNonPositiveQuantity {
+		return ErrNonPositiveArtQty
+	}
+	if err == cart.ErrItemAlreadyExistent {
+		return ErrArtAlreadyAdded
 	}
 	s.CartDB.Save(c)
 	return nil
