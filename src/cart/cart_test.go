@@ -9,6 +9,15 @@ func TestNewCartIsEmpty(t *testing.T) {
 	}
 }
 
+func TestFailOnNonPositiveCartID(t *testing.T) {
+	if _, err := NewCart(0); err != ErrNonPositiveID {
+		t.Errorf(`New cart with ID 0: %v instead of %v`, err, ErrNonPositiveID)
+	}
+	if _, err := NewCart(-1); err != ErrNonPositiveID {
+		t.Errorf(`New cart with negative ID: %v instead of %v`, err, ErrNonPositiveID)
+	}
+}
+
 func TestAddOneArticle(t *testing.T) {
 	const (
 		cartID = 1

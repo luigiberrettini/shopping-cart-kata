@@ -5,6 +5,9 @@ import (
 	"fmt"
 )
 
+// ErrNonPositiveID when the cart ID is zero or negative
+var ErrNonPositiveID = errors.New("Cart ID must be positive")
+
 // ErrItemAlreadyExistent when the cart item is already existent
 var ErrItemAlreadyExistent = errors.New("Item is already existent")
 
@@ -35,7 +38,7 @@ var DummyCart Cart = new(cart)
 // NewCart creates a new cart
 func NewCart(id int64) (Cart, error) {
 	if id <= 0 {
-		return DummyCart, errors.New("Non positive id")
+		return DummyCart, ErrNonPositiveID
 	}
 	c := new(cart)
 	c.id = id

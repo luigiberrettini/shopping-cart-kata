@@ -47,7 +47,7 @@ func TestDiscountForThreeOrMore(t *testing.T) {
 		discPrice = 19.0
 	)
 	c.AddArticle(artCod, artQty)
-	promoSet := e.ApplyRules(c, getPrices(c))
+	promoSet, _ := e.ApplyRules(c, getPrices(c))
 	if n := len(promoSet.CartItemDiscounts); n != 1 {
 		t.Fatalf("Retrieved %d discounts instead of 1", n)
 	}
@@ -71,10 +71,10 @@ func TestTwoForOne(t *testing.T) {
 	)
 	c1, _ := cart.NewCart(1)
 	c1.AddArticle(artCod, artQty1)
-	promos1 := e.ApplyRules(c1, getPrices(c1))
+	promos1, _ := e.ApplyRules(c1, getPrices(c1))
 	c2, _ := cart.NewCart(2)
 	c2.AddArticle(artCod, artQty2)
-	promos2 := e.ApplyRules(c2, getPrices(c2))
+	promos2, _ := e.ApplyRules(c2, getPrices(c2))
 	if n1 := len(promos1.CartItemDiscounts); n1 != 1 {
 		t.Fatalf("Retrieved %d discounts instead of 1 for cart %v", n1, c1)
 	}

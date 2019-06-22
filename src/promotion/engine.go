@@ -7,7 +7,7 @@ import (
 
 // Engine managing promotions
 type Engine interface {
-	ApplyRules(c cart.Cart, prices map[string]float64) PromoSet
+	ApplyRules(c cart.Cart, prices map[string]float64) (PromoSet, map[int64]error)
 	AddRule(f *func(c cart.Cart, prices map[string]float64) []interface{}) (int64, bool)
 	DelRule(id int64)
 }
@@ -25,16 +25,19 @@ func NewEngine() Engine {
 	return e
 }
 
-func (e *engine) ApplyRules(c cart.Cart, prices map[string]float64) PromoSet {
+func (e *engine) ApplyRules(c cart.Cart, prices map[string]float64) (PromoSet, map[int64]error) {
 	e.RLock()
 	defer e.RUnlock()
 	var promoSet PromoSet
-	for _, r := range e.rules {
+	errors := make(map[int64]error)
+	for i, r := range e.rules {
 		for _, p := range r.apply(c, prices) {
-			promoSet.addPromo(p)
+			if err := promoSet.addPromo(p); err != nil {
+				errors[i] = err
+			}
 		}
 	}
-	return promoSet
+	return promoSet, nil
 }
 
 func (e *engine) AddRule(f *func(c cart.Cart, prices map[string]float64) []interface{}) (int64, bool) {

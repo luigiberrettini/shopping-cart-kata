@@ -11,11 +11,17 @@ import (
 // ErrNotInitialized when there are problems with the dependencies AppService relies on
 var ErrNotInitialized = errors.New("Not initialized")
 
+// ErrCartCreation when there is an error on cart creation
+var ErrCartCreation = errors.New("Error on cart creation")
+
 // ErrCartNotFound when the cart is not present
 var ErrCartNotFound = errors.New("Unable to find the cart")
 
 // ErrArtNotFound when the article is not present
 var ErrArtNotFound = errors.New("Unable to find the article")
+
+// ErrPromoRulesApplication when there is an error applying promotion rules
+var ErrPromoRulesApplication = errors.New("Error applying promotion rules")
 
 // IDGenerator provides int64 IDs
 type IDGenerator interface {
@@ -32,12 +38,12 @@ type AppService struct {
 
 // CreateCart creates a cart and return its ID
 func (s AppService) CreateCart() (int64, error) {
-	if err := s.ensureReady(); err != nil {
-		return 0, err
+	if s.isNotReady() {
+		return 0, ErrNotInitialized
 	}
 	c, err := cart.NewCart(s.CartIDG.NextID())
 	if err != nil {
-		return 0, err
+		return 0, ErrCartCreation
 	}
 	s.CartDB.Save(c)
 	return c.GetID(), nil
@@ -45,8 +51,8 @@ func (s AppService) CreateCart() (int64, error) {
 
 // AddArticleToCart adds an article to an existing cart
 func (s AppService) AddArticleToCart(cartID int64, artCod string, quantity int) error {
-	if err := s.ensureReady(); err != nil {
-		return err
+	if s.isNotReady() {
+		return ErrNotInitialized
 	}
 	c := s.CartDB.Get(cartID)
 	if c == cart.DummyCart {
@@ -66,8 +72,8 @@ func (s AppService) AddArticleToCart(cartID int64, artCod string, quantity int) 
 
 // GetCart retrieves a priced cart with promotions applied
 func (s AppService) GetCart(id int64) (pricedcart.PricedCart, error) {
-	if err := s.ensureReady(); err != nil {
-		return pricedcart.DummyPricedCart, err
+	if s.isNotReady() {
+		return pricedcart.DummyPricedCart, ErrNotInitialized
 	}
 	c := s.CartDB.Get(id)
 	if c == cart.DummyCart {
@@ -80,26 +86,29 @@ func (s AppService) GetCart(id int64) (pricedcart.PricedCart, error) {
 	}
 	prices := s.Catalog.GetPrices(itemIDs)
 	pc := pricedcart.NewPricedCart(c, prices)
-	promoSet := s.PromEng.ApplyRules(c, prices)
+	promoSet, err := s.PromEng.ApplyRules(c, prices)
+	if err != nil {
+		return nil, ErrPromoRulesApplication
+	}
 	pc.ApplyPromotions(promoSet)
 	return pc, nil
 }
 
 // DeleteCart deletes a cart
 func (s AppService) DeleteCart(id int64) error {
-	if err := s.ensureReady(); err != nil {
-		return err
+	if s.isNotReady() {
+		return ErrNotInitialized
 	}
 	s.CartDB.Delete(id)
 	return nil
 }
 
-func (s AppService) ensureReady() error {
+func (s AppService) isNotReady() bool {
 	if s.CartIDG == nil ||
 		s.CartDB == nil ||
 		s.Catalog == nil ||
 		s.PromEng == nil {
-		return ErrNotInitialized
+		return true
 	}
-	return nil
+	return false
 }

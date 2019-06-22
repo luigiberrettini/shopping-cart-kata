@@ -1,8 +1,14 @@
 package promotion
 
 import (
-	"fmt"
+	"errors"
 )
+
+// ErrNilPromo when the promo is nil
+var ErrNilPromo = errors.New("Promo is nil")
+
+// ErrUnknownPromoType when the promo type is unknown
+var ErrUnknownPromoType = errors.New("Promo type is unknown")
 
 // PromoSet is the set of promotions to be applied
 type PromoSet struct {
@@ -12,10 +18,10 @@ type PromoSet struct {
 	ShippingDiscount     ShippingDiscount
 }
 
-func (ps *PromoSet) addPromo(p interface{}) {
+func (ps *PromoSet) addPromo(p interface{}) error {
 	switch promo := p.(type) {
 	case nil:
-		panic("Promo is nil")
+		return ErrNilPromo
 	case CartItemDiscount:
 		ps.CartItemDiscounts = append(ps.CartItemDiscounts, promo)
 	case CartPresent:
@@ -25,6 +31,7 @@ func (ps *PromoSet) addPromo(p interface{}) {
 	case ShippingDiscount:
 		ps.ShippingDiscount = promo
 	default:
-		panic(fmt.Sprintf("Unexpected promo type %T", p))
+		return ErrUnknownPromoType
 	}
+	return nil
 }
