@@ -5,16 +5,16 @@ import "testing"
 func TestNewCartIsEmpty(t *testing.T) {
 	cart, _ := NewCart(1)
 	if cart.GetQuantity() != 0 || len(cart.GetItems()) != 0 {
-		t.Error(`New cart contains items`)
+		t.Error("New cart contains items")
 	}
 }
 
 func TestFailOnNonPositiveCartID(t *testing.T) {
 	if _, err := NewCart(0); err != ErrNonPositiveID {
-		t.Errorf(`New cart with ID 0: %v instead of %v`, err, ErrNonPositiveID)
+		t.Errorf("New cart with ID 0: %v instead of %v", err, ErrNonPositiveID)
 	}
 	if _, err := NewCart(-1); err != ErrNonPositiveID {
-		t.Errorf(`New cart with negative ID: %v instead of %v`, err, ErrNonPositiveID)
+		t.Errorf("New cart with negative ID: %v instead of %v", err, ErrNonPositiveID)
 	}
 }
 
@@ -36,7 +36,7 @@ func TestAddOneArticle(t *testing.T) {
 		t.Fatalf("Cart contains %d items instead of %d", n, nArt)
 	}
 	if items[0].ID != artID || items[0].Quantity != artQty {
-		msg := `Cart item {%v} does not match article { "id": %q, "quantity": %d\n}`
+		msg := "Cart item %s does not match article { \"id\": %q, \"quantity\": %d}\n"
 		t.Errorf(msg, items[0], artID, artQty)
 	}
 }
@@ -61,11 +61,13 @@ func TestAddTwoArticles(t *testing.T) {
 	if n := len(items); n != nItems {
 		t.Fatalf("Cart contains %d items instead of %d", n, nItems)
 	}
-	msg := `Cart item {%v} does not match article { "id": %q, "quantity": %d\n}`
-	if items[0].ID != artID1 || items[0].Quantity != artQty1 {
+	msg := "Cart item %s not added\n"
+	if (items[0].ID != artID1 || items[0].Quantity != artQty1) &&
+		(items[0].ID != artID2 || items[0].Quantity != artQty2) {
 		t.Errorf(msg, items[0], artID1, artQty1)
 	}
-	if items[1].ID != artID2 || items[1].Quantity != artQty2 {
+	if (items[1].ID != artID1 || items[1].Quantity != artQty1) &&
+		(items[1].ID != artID2 || items[1].Quantity != artQty2) {
 		t.Errorf(msg, items[1], artID2, artQty2)
 	}
 }
@@ -91,7 +93,7 @@ func TestFailWhenAddomgSameArticleTwice(t *testing.T) {
 		t.Fatalf("Cart contains %d items instead of %d", n, nItems)
 	}
 	if items[0].ID != artID || items[0].Quantity != artQty {
-		msg := `Cart item {%v} does not match article { "id": %q, "quantity": %d\n}`
+		msg := "Cart item %s does not match article { \"id\": %q, \"quantity\": %d}\n"
 		t.Errorf(msg, items[0], artID, artQty)
 	}
 }
@@ -116,7 +118,7 @@ func TestChangeArticleQuantity(t *testing.T) {
 		t.Fatalf("Cart contains %d items instead of %d", n, nItems)
 	}
 	if items[0].ID != artID || items[0].Quantity != totQty {
-		msg := `Cart item {%v} does not match article { "id": %q, "quantity": %d\n}`
+		msg := "Cart item %s does not match article { \"id\": %q, \"quantity\": %d}\n"
 		t.Errorf(msg, items[0], artID, totQty)
 	}
 }
