@@ -69,7 +69,7 @@ func (a *App) addArticleToCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err == appservice.ErrArtAlreadyAdded {
-		respondWithError(w, http.StatusBadRequest, "Article already added")
+		respondWithError(w, http.StatusConflict, "Article already added")
 		return
 	}
 	if err == appservice.ErrNonPositiveArtQty {
