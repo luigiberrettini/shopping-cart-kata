@@ -2,68 +2,83 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
+	"shopping-cart-kata/catalog"
+	"strings"
 )
 
-var welcomeMessage = `
-OUR CATALOG CONTAINS THE FOLLOWING ARTICLES
-   Code         | Name                     |  Price
-   --------------------------------------------------
-   VOUCHER      | CompanyName Voucher      |   5.00 €
-   TSHIRT       | CompanyName T-Shirt      |  20.00 €
-   MUG          | CompanyName Coffee Mug   |   7.50 €
-
-PLEASE CHOOSE AN OPERATION
- 1) Create a cart
- 2) Add an article to a cart
- 3) Get the cart subtotal
- 4) Delete a cart
- 5) Quit
-`
-
 func main() {
-	var authority = flag.String("address", "127.0.0.1:8000", "Address:port of the server")
+	var baseURL = flag.String("baseUrl", "http://127.0.0.1:8000", "Address:port of the server")
 	flag.Parse()
-	fmt.Println(welcomeMessage)
-	mainLoop(*authority)
-}
-
-func mainLoop(authority string) {
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		input := scanner.Text()
-		switch input {
+	welcomeMsg := buildWelcomeMsg(*baseURL)
+	fmt.Println(welcomeMsg)
+	input := bufio.NewScanner(os.Stdin)
+	a := &App{BaseURL: *baseURL, HTTPClient: http.Client{}}
+	for input.Scan() {
+		choice := input.Text()
+		switch choice {
 		case "1":
-			createCart(scanner, authority)
+			handleCreateCart(a)
 		case "2":
-			addArticleToCart(scanner, authority)
+			handleAddArticleToCart(input, a)
 		case "3":
-			getCartSubtotal(scanner, authority)
+			handleGetCartSubtotal(input, a)
 		case "4":
-			deleteCart(scanner, authority)
+			handleDeleteCart(input, a)
 		case "5":
+			fmt.Println()
 			os.Exit(0)
 		default:
-			fmt.Printf("Invalid choice %s", input)
+			fmt.Printf("Invalid choice %s", choice)
 		}
-		fmt.Println(welcomeMessage)
+		fmt.Printf("\n\n%s\n", welcomeMsg)
 	}
 }
 
-func createCart(b *bufio.Scanner, authority string) {
-	fmt.Println("Creating a cart...")
+func buildWelcomeMsg(baseURL string) string {
+	arts, err := getArticles(baseURL)
+	if err != nil {
+		fmt.Printf("Error retrieving the catalog:\n%s", err)
+		os.Exit(1)
+	}
+	return welcomeMsgForArticles(arts)
 }
 
-func addArticleToCart(b *bufio.Scanner, authority string) {
-	fmt.Println("Adding article to a cart...")
+func getArticles(baseURL string) ([]catalog.Article, error) {
+	var arts []catalog.Article
+	url := fmt.Sprintf("%s/articles", baseURL)
+	resp, err := http.Get(url)
+	if err != nil {
+		return arts, err
+	}
+	defer resp.Body.Close()
+	if err := json.NewDecoder(resp.Body).Decode(&arts); err != nil {
+		return arts, err
+	}
+	return arts, nil
 }
 
-func getCartSubtotal(b *bufio.Scanner, authority string) {
-	fmt.Println("Retrieving the cart...")
-}
-
-func deleteCart(b *bufio.Scanner, authority string) {
-	fmt.Println("Deleting the cart...")
+func welcomeMsgForArticles(articles []catalog.Article) string {
+	var sb strings.Builder
+	sb.WriteString("\nOUR CATALOG CONTAINS THE FOLLOWING ARTICLES\n")
+	sb.WriteString("      Code             |   Name             |   Price\n")
+	sb.WriteString("   ---------------------------------------------------------------\n")
+	indent := 3
+	colWidth := 20
+	for _, a := range articles {
+		sCode := strings.Repeat(" ", colWidth-indent-len(a.Code))
+		sName := strings.Repeat(" ", colWidth-indent-len(a.Name))
+		sb.WriteString(fmt.Sprintf("      %s%s|   %s%s|  %6.2f €\n", a.Code, sCode, a.Name, sName, a.Price))
+	}
+	sb.WriteString("\nPLEASE SELECT AN OPERATION\n")
+	sb.WriteString(" 1) Create a cart\n")
+	sb.WriteString(" 2) Add an article to a cart\n")
+	sb.WriteString(" 3) Get the cart subtotal\n")
+	sb.WriteString(" 4) Delete a cart\n")
+	sb.WriteString(" 5) Quit\n")
+	return sb.String()
 }
