@@ -83,7 +83,7 @@ func (a *App) addArticleToCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.CartCache.Remove(wid)
-	respondWithPayload(w, http.StatusOK, article, "")
+	respondWithPayload(w, http.StatusCreated, article, "")
 }
 
 func (a *App) getCart(w http.ResponseWriter, r *http.Request) {

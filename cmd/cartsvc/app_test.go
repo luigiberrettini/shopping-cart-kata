@@ -115,7 +115,7 @@ func TestGetCartWithArticles(t *testing.T) {
 	b := bytes.NewBuffer(j)
 	req, _ = http.NewRequest("POST", url, b)
 	response = executeRequest(a, req)
-	checkResponseCode(t, http.StatusOK, response)
+	checkResponseCode(t, http.StatusCreated, response)
 
 	response = executeRequest(a, req)
 	checkResponseCode(t, http.StatusBadRequest, response)
