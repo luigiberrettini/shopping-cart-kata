@@ -47,7 +47,7 @@ func TestPrices(t *testing.T) {
 	}
 	exp1 := Item{Item: cart.Item{ID: artID, Quantity: artQty}, UnitPrice: 0, TotalPrice: 0}
 	if items1[0] != exp1 {
-		t.Errorf(`Cart item %v does not match %v`, items1[0], exp1)
+		t.Errorf("Cart item %s does not match %s", items1[0], exp1)
 	}
 
 	if cartQty2 != artQty {
@@ -61,7 +61,7 @@ func TestPrices(t *testing.T) {
 	}
 	exp2 := Item{Item: cart.Item{ID: artID, Quantity: artQty}, UnitPrice: unitPrice, TotalPrice: totPrice}
 	if items2[0] != exp2 {
-		t.Errorf(`Cart item %v does not match %v`, items2[0], exp2)
+		t.Errorf("Cart item %s does not match %s", items2[0], exp2)
 	}
 }
 
@@ -91,6 +91,6 @@ func TestPromotions(t *testing.T) {
 	}
 	exp := Item{Item: cart.Item{ID: artID, Quantity: artQty}, UnitPrice: unitPrice, TotalPrice: promPrice}
 	if items[0] != exp {
-		t.Errorf(`Cart item %v does not match %v`, items[0], exp)
+		t.Errorf("Cart item %s does not match %s", items[0], exp)
 	}
 }

@@ -105,5 +105,5 @@ func (c *cart) SetArticleQty(id string, quantity int) error {
 }
 
 func (c *cart) String() string {
-	return fmt.Sprintf(`{ "id": %d, "quantity": %d, "items": [%v]}`, c.GetID(), c.GetQuantity(), c.GetItems())
+	return fmt.Sprintf(`{ "id": %d, "quantity": %d, "items": %v}`, c.GetID(), c.GetQuantity(), c.GetItems())
 }

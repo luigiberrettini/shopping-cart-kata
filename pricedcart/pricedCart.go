@@ -96,6 +96,6 @@ func (c *pricedCart) ApplyPromotions(ps promotion.PromoSet) PricedCart {
 }
 
 func (c *pricedCart) String() string {
-	f := `{ "id": %d, "quantity": %d, "subTotal": %g, "items": [%v]}`
+	f := `{ "id": %d, "quantity": %d, "subTotal": %g, "items": %v}`
 	return fmt.Sprintf(f, c.GetID(), c.GetQuantity(), c.GetSubtotal(), c.GetItems())
 }
