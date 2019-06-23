@@ -47,7 +47,7 @@ func TestHash(t *testing.T) {
 }
 
 func TestCreateWihtNonInitializedAppSvc(t *testing.T) {
-	cfg := Config{CompanyName: "", HashSalt: "", ListenAddress: "127.0.0.1"}
+	cfg := Config{HashSalt: "", ListenAddress: "127.0.0.1"}
 	a := &App{
 		AppSvc:    appservice.AppService{CartIDG: nil, CartDB: nil, Catalog: nil, PromEng: nil},
 		HashGen:   createHashGenerator(cfg.HashSalt),
@@ -268,12 +268,12 @@ func TestGetDeletedCart(t *testing.T) {
 }
 
 func testApp(c cache.Cache) *App {
-	cfg := Config{CompanyName: "CmPnY", HashSalt: "a9a21fd753f94", ListenAddress: "127.0.0.1"}
+	cfg := Config{HashSalt: "a9a21fd753f94", ListenAddress: "127.0.0.1"}
 	a := &App{
 		AppSvc: appservice.AppService{
 			CartIDG: new(generator),
 			CartDB:  cart.NewStore(),
-			Catalog: createCatalog(cfg.CompanyName),
+			Catalog: createCatalog(),
 			PromEng: createPromoEngine(),
 		},
 		HashGen:   createHashGenerator(cfg.HashSalt),

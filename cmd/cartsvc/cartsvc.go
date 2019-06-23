@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/speps/go-hashids"
 	"shopping-cart-kata/appservice"
@@ -21,13 +20,11 @@ func main() {
 }
 
 func loadConfig() Config {
-	var companyName = flag.String("company", "AcME", "Company name for catalog articles")
 	var hashSalt = flag.String("salt", "a9a21fd753f9431381c3980c7664aab6", "Hash salt for REST IDs")
 	var listenAddress = flag.String("listen", "127.0.0.1:8000", "Address:port on which to listen")
 	var authority = flag.String("authority", "127.0.0.1:8000", "Authority part of REST URLs")
 	flag.Parse()
 	return Config{
-		CompanyName:   *companyName,
 		HashSalt:      *hashSalt,
 		ListenAddress: *listenAddress,
 		Authority:     *authority,
@@ -39,7 +36,7 @@ func createApp(cfg Config) *App {
 		AppSvc: appservice.AppService{
 			CartIDG: new(generator),
 			CartDB:  cart.NewStore(),
-			Catalog: createCatalog(cfg.CompanyName),
+			Catalog: createCatalog(),
 			PromEng: createPromoEngine(),
 		},
 		HashGen:   createHashGenerator(cfg.HashSalt),
@@ -59,23 +56,11 @@ func createHashGenerator(salt string) *hashids.HashID {
 	return hg
 }
 
-func createCatalog(company string) catalog.Catalog {
+func createCatalog() catalog.Catalog {
 	c := catalog.NewCatalog()
-	c.AddArticle(catalog.Article{
-		Code:  "VOUCHER",
-		Name:  fmt.Sprintf("%s Voucher", company),
-		Price: 5.0,
-	})
-	c.AddArticle(catalog.Article{
-		Code:  "TSHIRT",
-		Name:  fmt.Sprintf("%s T-Shirt", company),
-		Price: 20.0,
-	})
-	c.AddArticle(catalog.Article{
-		Code:  "MUG",
-		Name:  fmt.Sprintf("%s Coffee Mug", company),
-		Price: 7.5,
-	})
+	c.AddArticle(catalog.Article{Code: "VOUCHER", Name: "AcME Voucher", Price: 5.0})
+	c.AddArticle(catalog.Article{Code: "TSHIRT", Name: "AcME T-Shirt", Price: 20.0})
+	c.AddArticle(catalog.Article{Code: "MUG", Name: "AcME Coffee Mug", Price: 7.5})
 	return c
 }
 
