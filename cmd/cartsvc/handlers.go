@@ -45,14 +45,14 @@ func (a *App) addArticleToCart(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := a.decode(wid)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Invalid cart ID")
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	var article itemCreateVM
 	decoder := json.NewDecoder(r.Body)
 	defer r.Body.Close()
 	if err := decoder.Decode(&article); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		respondWithError(w, http.StatusBadRequest, "Request payload cannot be decoded")
 		return
 	}
 	err = a.AppSvc.AddArticleToCart(id, article.ID, article.Quantity)
@@ -61,7 +61,7 @@ func (a *App) addArticleToCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err == appservice.ErrCartNotFound {
-		respondWithError(w, http.StatusNotFound, "The cart cannot be found")
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if err == appservice.ErrArtNotFound {
@@ -95,7 +95,7 @@ func (a *App) getCart(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := a.decode(wid)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Invalid cart ID")
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	pc, err := a.AppSvc.GetCart(id)
@@ -104,7 +104,7 @@ func (a *App) getCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err == appservice.ErrCartNotFound {
-		respondWithError(w, http.StatusNotFound, "The cart cannot be found")
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if err == appservice.ErrPromoRulesApplication {
@@ -129,7 +129,7 @@ func (a *App) deleteCart(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := a.decode(wid)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Invalid cart ID")
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	err = a.AppSvc.DeleteCart(id)
