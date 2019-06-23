@@ -141,6 +141,11 @@ func (a *App) deleteCart(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (a *App) getArticles(w http.ResponseWriter, r *http.Request) {
+	arts := a.AppSvc.Catalog.GetArticles()
+	respondWithPayload(w, http.StatusOK, arts, "")
+}
+
 func respondWithError(w http.ResponseWriter, code int, message string) {
 	respondWithPayload(w, code, map[string]string{"error": message}, "")
 }
