@@ -1,0 +1,24 @@
+version: '3'
+services:
+  cartsvc:
+    build: .
+    image: cartools
+    command: ["/cartsvc", "-listen=cartsvc:8000", "-authority=cartsvc:8000"]
+    container_name: cartservice
+    hostname: cartservice
+    networks:
+      - bridgedNet
+    ports:
+      - "8000:8000"
+  cartcli:
+    depends_on:
+      - cartsvc
+    image: cartools
+    command: ["/cartcli", "-baseUrl=http://cartsvc:8000"]
+    container_name: cartclient
+    hostname: cartclient
+    networks:
+      - bridgedNet
+networks:
+  bridgedNet:
+    driver: bridge
