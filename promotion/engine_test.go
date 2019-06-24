@@ -92,6 +92,114 @@ func TestTwoForOne(t *testing.T) {
 	}
 }
 
+func TestVoucherTshirtMug(t *testing.T) {
+	e := NewEngine().(*engine)
+	f1 := TwoForOne
+	e.AddRule(&f1)
+	f2 := DiscountForThreeOrMore
+	e.AddRule(&f2)
+	const (
+		voucher = "VOUCHER"
+		tshirt  = "TSHIRT"
+		mug     = "MUG"
+		aff1    = 1
+	)
+	c1, _ := cart.NewCart(1)
+	c1.AddArticle(voucher, 1)
+	c1.AddArticle(tshirt, 1)
+	c1.AddArticle(mug, 1)
+	promos, _ := e.ApplyRules(c1, getPrices(c1))
+	if len(promos.CartItemDiscounts) != 0 {
+		t.Errorf("Discounts were not expected: %v", promos.CartItemDiscounts)
+	}
+}
+
+func Test2VoucherTshirt(t *testing.T) {
+	e := NewEngine().(*engine)
+	f1 := TwoForOne
+	e.AddRule(&f1)
+	f2 := DiscountForThreeOrMore
+	e.AddRule(&f2)
+	const (
+		voucher = "VOUCHER"
+		tshirt  = "TSHIRT"
+		aff1    = 1
+	)
+	c1, _ := cart.NewCart(1)
+	c1.AddArticle(voucher, 1)
+	c1.AddArticle(tshirt, 1)
+	c1.SetArticleQty(voucher, 2)
+	promos, _ := e.ApplyRules(c1, getPrices(c1))
+	exp := CartItemDiscount{Discount: Discount{Mode: Percentage, Value: 100}, ItemID: voucher, AffectedQty: 1}
+	if n := len(promos.CartItemDiscounts); n != 1 {
+		t.Fatalf("Discounts are %d instead of 1", n)
+	}
+	if promos.CartItemDiscounts[0] != exp {
+		t.Errorf("Discount %v not as expected: %v", promos.CartItemDiscounts[0], exp)
+	}
+}
+
+func TestVoucher4Tshirt(t *testing.T) {
+	e := NewEngine().(*engine)
+	f1 := TwoForOne
+	e.AddRule(&f1)
+	f2 := DiscountForThreeOrMore
+	e.AddRule(&f2)
+	const (
+		voucher = "VOUCHER"
+		tshirt  = "TSHIRT"
+		aff1    = 1
+	)
+	c1, _ := cart.NewCart(1)
+	c1.AddArticle(tshirt, 1)
+	c1.SetArticleQty(tshirt, 2)
+	c1.SetArticleQty(tshirt, 3)
+	c1.AddArticle(voucher, 1)
+	c1.SetArticleQty(tshirt, 4)
+	promos, _ := e.ApplyRules(c1, getPrices(c1))
+	exp := CartItemDiscount{Discount: Discount{Mode: NewValue, Value: 19}, ItemID: tshirt, AffectedQty: 4}
+	if n := len(promos.CartItemDiscounts); n != 1 {
+		t.Fatalf("Discounts are %d instead of 1", n)
+	}
+	if promos.CartItemDiscounts[0] != exp {
+		t.Errorf("Discount %v not as expected: %v", promos.CartItemDiscounts[0], exp)
+	}
+}
+
+func Test3Voucher3TshirtMug(t *testing.T) {
+	e := NewEngine().(*engine)
+	f1 := TwoForOne
+	e.AddRule(&f1)
+	f2 := DiscountForThreeOrMore
+	e.AddRule(&f2)
+	const (
+		voucher = "VOUCHER"
+		tshirt  = "TSHIRT"
+		mug     = "MUG"
+		aff1    = 1
+	)
+	c1, _ := cart.NewCart(1)
+	c1.AddArticle(voucher, 1)
+	c1.AddArticle(tshirt, 1)
+	c1.SetArticleQty(voucher, 2)
+	c1.SetArticleQty(voucher, 3)
+	c1.AddArticle(mug, 1)
+	c1.SetArticleQty(tshirt, 2)
+	c1.SetArticleQty(tshirt, 3)
+	promos, _ := e.ApplyRules(c1, getPrices(c1))
+	exp1 := CartItemDiscount{Discount: Discount{Mode: Percentage, Value: 100}, ItemID: voucher, AffectedQty: 1}
+	exp2 := CartItemDiscount{Discount: Discount{Mode: NewValue, Value: 19}, ItemID: tshirt, AffectedQty: 3}
+	if n := len(promos.CartItemDiscounts); n != 2 {
+		t.Fatalf("Discounts are %d instead of 2", n)
+	}
+	if promos.CartItemDiscounts[0] != exp1 && promos.CartItemDiscounts[0] != exp2 {
+		t.Errorf("Discount %v not in the expected:\n%v\n%v", promos.CartItemDiscounts[0], exp1, exp2)
+	}
+	if promos.CartItemDiscounts[1] != exp1 && promos.CartItemDiscounts[1] != exp2 {
+		t.Errorf("Discount %v not in the expected:\n%v\n%v", promos.CartItemDiscounts[1], exp1, exp2)
+	}
+}
+
 func getPrices(c cart.Cart) map[string]float64 {
 	return map[string]float64{
 		"VOUCHER": 5.0,

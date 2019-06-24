@@ -16,7 +16,7 @@ func TwoForOne(c cart.Cart, prices map[string]float64) []interface{} {
 	promos := make([]interface{}, len(items))
 	i := 0
 	for _, item := range items {
-		if item.ID == "VOUCHER" && item.Quantity > 2 {
+		if item.ID == "VOUCHER" && item.Quantity >= 2 {
 			promos[i] = CartItemDiscount{
 				Discount:    Discount{Mode: Percentage, Value: 100},
 				ItemID:      item.ID,
@@ -34,7 +34,7 @@ func DiscountForThreeOrMore(c cart.Cart, prices map[string]float64) []interface{
 	promos := make([]interface{}, len(items))
 	i := 0
 	for _, item := range items {
-		if item.ID == "TSHIRT" && item.Quantity > 3 {
+		if item.ID == "TSHIRT" && item.Quantity >= 3 {
 			promos[i] = CartItemDiscount{
 				Discount:    Discount{Mode: NewValue, Value: 19},
 				ItemID:      item.ID,
