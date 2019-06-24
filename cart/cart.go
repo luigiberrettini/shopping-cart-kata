@@ -3,6 +3,7 @@ package cart
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 // ErrNonPositiveID when the cart ID is zero or negative
@@ -27,6 +28,7 @@ type Cart interface {
 }
 
 type cart struct {
+	nItems   int64
 	id       int64
 	quantity int
 	items    map[string]*Item
@@ -66,7 +68,7 @@ func (c *cart) GetQuantity() int {
 	return c.quantity
 }
 
-// GetItems returns the cart items
+// GetItems returns the cart items sorted by insertion order
 func (c *cart) GetItems() []Item {
 	items := make([]Item, len(c.items))
 	i := 0
@@ -74,6 +76,7 @@ func (c *cart) GetItems() []Item {
 		items[i] = *item
 		i++
 	}
+	sort.Slice(items, func(i, j int) bool { return items[i].insID < items[j].insID })
 	return items
 }
 
@@ -85,8 +88,8 @@ func (c *cart) AddArticle(id string, quantity int) error {
 	if _, ok := c.items[id]; ok {
 		return ErrItemAlreadyExistent
 	}
-	c.items[id] = &Item{id, 0}
-	c.items[id].Quantity = quantity
+	c.nItems++
+	c.items[id] = &Item{insID: c.nItems, ID: id, Quantity: quantity}
 	c.quantity += quantity
 	return nil
 }

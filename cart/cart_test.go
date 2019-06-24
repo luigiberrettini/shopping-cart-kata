@@ -62,12 +62,10 @@ func TestAddTwoArticles(t *testing.T) {
 		t.Fatalf("Cart contains %d items instead of %d", n, nItems)
 	}
 	msg := "Cart item %s not added\n"
-	if (items[0].ID != artID1 || items[0].Quantity != artQty1) &&
-		(items[0].ID != artID2 || items[0].Quantity != artQty2) {
+	if items[0].ID != artID1 || items[0].Quantity != artQty1 {
 		t.Errorf(msg, items[0], artID1, artQty1)
 	}
-	if (items[1].ID != artID1 || items[1].Quantity != artQty1) &&
-		(items[1].ID != artID2 || items[1].Quantity != artQty2) {
+	if items[1].ID != artID2 || items[1].Quantity != artQty2 {
 		t.Errorf(msg, items[1], artID2, artQty2)
 	}
 }

@@ -4,6 +4,7 @@ import "fmt"
 
 // Item represents a shopping cart item
 type Item struct {
+	insID    int64
 	ID       string
 	Quantity int
 }
