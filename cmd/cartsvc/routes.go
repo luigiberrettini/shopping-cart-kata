@@ -12,6 +12,7 @@ func (a *App) ConfigRoutes(authority string) {
 	a.Router.HandleFunc("/carts/{id}", a.getCart).Host(authority).Methods("GET").Name("cart")
 	a.Router.HandleFunc("/carts/{id}", a.deleteCart).Host(authority).Methods("DELETE")
 	a.Router.HandleFunc("/carts/{id}/items", a.addArticleToCart).Host(authority).Methods("POST")
+	a.Router.HandleFunc("/carts/{id}/items", a.setArticleQuantity).Host(authority).Methods("PUT")
 	// Should be in the catalog API
 	a.Router.HandleFunc("/articles", a.getArticles).Host(authority).Methods("GET")
 }

@@ -77,13 +77,61 @@ func (a *App) addArticleToCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	url, err := buildCartURL(wid)
-	article.CartURL = url.String()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "The system encountered an unxepected condition")
 		return
 	}
+	article.CartURL = url.String()
 	a.CartCache.Remove(wid)
 	respondWithPayload(w, http.StatusCreated, article, "")
+}
+
+func (a *App) setArticleQuantity(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	wid := vars["id"]
+	if im := r.Header.Get("If-Match"); len(im) != 0 {
+		if _, ok := a.CartCache.GetByEtagWithID(im, wid); !ok {
+			w.WriteHeader(http.StatusPreconditionFailed)
+			return
+		}
+	}
+	id, err := a.decode(wid)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	var article itemCreateVM
+	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
+	if err := decoder.Decode(&article); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Request payload cannot be decoded")
+		return
+	}
+	err = a.AppSvc.SetArticleQty(id, article.ID, article.Quantity)
+	if err == appservice.ErrNotInitialized {
+		respondWithError(w, http.StatusInternalServerError, "The system is not configured properly")
+		return
+	}
+	if err == appservice.ErrCartNotFound {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if err == appservice.ErrArtNotFound {
+		respondWithError(w, http.StatusUnprocessableEntity, "The article is not in the cart")
+		return
+	}
+	if err == appservice.ErrNonPositiveArtQty {
+		respondWithError(w, http.StatusUnprocessableEntity, "Article quantity must be positive")
+		return
+	}
+	url, err := buildCartURL(wid)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "The system encountered an unxepected condition")
+		return
+	}
+	article.CartURL = url.String()
+	a.CartCache.Remove(wid)
+	respondWithPayload(w, http.StatusOK, article, "")
 }
 
 func (a *App) getCart(w http.ResponseWriter, r *http.Request) {

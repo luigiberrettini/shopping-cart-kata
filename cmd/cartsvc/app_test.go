@@ -95,6 +95,46 @@ func TestUnsuccessfulAddArticle(t *testing.T) {
 	checkResponseCode(t, http.StatusUnprocessableEntity, response)
 }
 
+func TestUnsuccessfulSetArticleQuantity(t *testing.T) {
+	a := testApp(new(uncache))
+	req, _ := http.NewRequest("POST", "http://127.0.0.1/carts", nil)
+	response := executeRequest(a, req)
+
+	var c cartVM
+	json.NewDecoder(response.Body).Decode(&c)
+	url := fmt.Sprintf("%s/items", c.URL)
+	art := a.AppSvc.Catalog.GetArticles()[0]
+	item := itemCreateVM{ID: art.Code, Quantity: 5}
+
+	j, _ := json.Marshal(item)
+	b := bytes.NewBuffer(j)
+	req, _ = http.NewRequest("POST", url, b)
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusCreated, response)
+
+	item.ID = "notValid"
+	j, _ = json.Marshal(item)
+	b = bytes.NewBuffer(j)
+	req, _ = http.NewRequest("PUT", url, b)
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusUnprocessableEntity, response)
+
+	item.ID = art.Code
+	item.Quantity = 0
+	j, _ = json.Marshal(item)
+	b = bytes.NewBuffer(j)
+	req, _ = http.NewRequest("PUT", url, b)
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusUnprocessableEntity, response)
+
+	item.Quantity = -2
+	j, _ = json.Marshal(item)
+	b = bytes.NewBuffer(j)
+	req, _ = http.NewRequest("PUT", url, b)
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusUnprocessableEntity, response)
+}
+
 func TestGetCartWithArticles(t *testing.T) {
 	a := testApp(new(uncache))
 	req, _ := http.NewRequest("POST", "http://127.0.0.1/carts", nil)
@@ -119,6 +159,11 @@ func TestGetCartWithArticles(t *testing.T) {
 
 	response = executeRequest(a, req)
 	checkResponseCode(t, http.StatusBadRequest, response)
+
+	b = bytes.NewBuffer(j)
+	req, _ = http.NewRequest("PUT", url, b)
+	response = executeRequest(a, req)
+	checkResponseCode(t, http.StatusOK, response)
 
 	req, _ = http.NewRequest("GET", c.URL, nil)
 	response = executeRequest(a, req)
