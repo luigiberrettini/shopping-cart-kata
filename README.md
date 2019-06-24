@@ -10,9 +10,9 @@ A company wants to sell online the following products:
 ```
 Code         | Name                     |  Price
 --------------------------------------------------
-VOUCHER      | CompanyName Voucher      |   5.00 €
-TSHIRT       | CompanyName T-Shirt      |  20.00 €
-MUG          | CompanyName Coffee Mug   |   7.50 €
+VOUCHER      | AcME Voucher             |   5.00 €
+TSHIRT       | AcME T-Shirt             |  20.00 €
+MUG          | AcME Coffee Mug          |   7.50 €
 ```
 
 Two different offers will be used to boost sales:
@@ -26,16 +26,16 @@ The promotional strategy planned by the company is to apply:
 **Examples**
 ```
 Items: VOUCHER, TSHIRT, MUG
-Total: 32.50€
+Subtotal: 32.50€
 
 Items: VOUCHER, TSHIRT, VOUCHER
-Total: 25.00€
+Subtotal: 25.00€
 
 Items: TSHIRT, TSHIRT, TSHIRT, VOUCHER, TSHIRT
-Total: 81.00€
+Subtotal: 81.00€
 
 Items: VOUCHER, TSHIRT, VOUCHER, VOUCHER, MUG, TSHIRT, TSHIRT
-Total: 74.50€
+Subtotal: 74.50€
 ```
 
 
@@ -44,18 +44,18 @@ Total: 74.50€
 Design and implement a client/server solution supporting the following operations:
  - create a new cart
  - add a product to a cart
- - get the total amount of a cart
+ - get the cart subtotal
  - remove a cart
 
 
 ## Requirements
- - Write production-ready code that is easy to maintain and evolve
- - Allow easy and frequent changes to the set of rules in the promotional strategy
  - Do not use any external databases of any kind
  - Support multiple concurrent remote invocations and operations on the same cart and on different carts
  - Use the protocol exposed by the server in the client to translate user input to remote calls
+ - Allow easy and frequent changes to the set of rules in the promotional strategy
+ - Write production-ready code that is easy to maintain and evolve
 
 
 ## Deliverables
  - Description of the solution justifying choices
- - Proof of concept of the proposed solution building and executing on a UNIX/Linux environment
+ - Proof of concept of the proposed solution that can be built and executed on a UNIX/Linux environment
