@@ -38,6 +38,14 @@ func (a *App) createCart() (cart, int, string, error) {
 	return c, code, msg, err
 }
 
+func (a *App) addOrUpdateArticle(id string, etag string, aCod string, aQty int) (article, int, string, error) {
+	art, code, msg, err := a.addArticleToCart(id, etag, aCod, aQty)
+	if code != http.StatusConflict {
+		return art, code, msg, err
+	}
+	return a.setArticleQuantity(id, etag, aCod, art.Quantity+aQty)
+}
+
 func (a *App) addArticleToCart(id string, etag string, aCod string, aQty int) (article, int, string, error) {
 	var art article
 	url := fmt.Sprintf("%s/carts/%s/items", a.BaseURL, id)
@@ -47,6 +55,25 @@ func (a *App) addArticleToCart(id string, etag string, aCod string, aQty int) (a
 	}
 	b := bytes.NewBuffer(j)
 	req, err := http.NewRequest("POST", url, b)
+	if err != nil {
+		return art, 0, "", ErrReqPreparation
+	}
+	if etag != "" {
+		req.Header.Set("If-Match", etag)
+	}
+	code, msg, err := performReq(a, req, &art)
+	return art, code, msg, err
+}
+
+func (a *App) setArticleQuantity(id string, etag string, aCod string, aQty int) (article, int, string, error) {
+	var art article
+	url := fmt.Sprintf("%s/carts/%s/items", a.BaseURL, id)
+	j, err := json.Marshal(article{ID: aCod, Quantity: aQty})
+	if err != nil {
+		return art, 0, "", ErrReqPreparation
+	}
+	b := bytes.NewBuffer(j)
+	req, err := http.NewRequest("PUT", url, b)
 	if err != nil {
 		return art, 0, "", ErrReqPreparation
 	}

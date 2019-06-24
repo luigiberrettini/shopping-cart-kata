@@ -43,6 +43,14 @@ func TestAddArtToCartSuccessWithIfMatchEtag(t *testing.T) {
 	addArticleToCartSuccess(t, `W/"123456789"`)
 }
 
+func TestSetArtQtySuccessWithoutIfMatchEtag(t *testing.T) {
+	setArticleQtySuccess(t, "")
+}
+
+func TestSetArtQtySuccessWithIfMatchEtag(t *testing.T) {
+	setArticleQtySuccess(t, `W/"123456789"`)
+}
+
 func TestGetCartSuccessWithoutIfNoneMatchEtag(t *testing.T) {
 	getCartSuccess(t, "")
 }
@@ -108,6 +116,45 @@ func addArticleToCartSuccess(t *testing.T, reqEtag string) {
 	a := &App{BaseURL: ts.URL, HTTPClient: *ts.Client()}
 	ar, sc, m, err := a.addArticleToCart("A", "B", art.ID, art.Quantity)
 	if ar.String() != art.String() || sc != sCod || err != nil {
+		t.Errorf("EXPECTED\nCart: %s\nStatus code: %d\nMessage: %s\n\n", art, sCod, "")
+		t.Errorf("GOT\nCart: %s\nStatus code: %d\nMessage: %s\nError: %s", ar, sc, m, err)
+	}
+}
+
+func setArticleQtySuccess(t *testing.T, reqEtag string) {
+	sCod := http.StatusOK
+	art := article{ID: "A", Quantity: 2}
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		respondWithPayload(w, sCod, art, "")
+	}
+	ts := httptest.NewServer(http.HandlerFunc(hf))
+	defer ts.Close()
+	a := &App{BaseURL: ts.URL, HTTPClient: *ts.Client()}
+	ar, sc, m, err := a.setArticleQuantity("A", "B", art.ID, art.Quantity)
+	if ar.String() != art.String() || sc != sCod || err != nil {
+		t.Errorf("EXPECTED\nCart: %s\nStatus code: %d\nMessage: %s\n\n", art, sCod, "")
+		t.Errorf("GOT\nCart: %s\nStatus code: %d\nMessage: %s\nError: %s", ar, sc, m, err)
+	}
+}
+
+func addOrUpdateArticle(t *testing.T, reqEtag string) {
+	counter := 0
+	sCod := http.StatusOK
+	art := article{ID: "A", Quantity: 2}
+	expArt := article{ID: art.ID, Quantity: 4}
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		if counter == 0 {
+			respondWithPayload(w, http.StatusConflict, art, "")
+			counter++
+			return
+		}
+		respondWithPayload(w, http.StatusOK, art, "")
+	}
+	ts := httptest.NewServer(http.HandlerFunc(hf))
+	defer ts.Close()
+	a := &App{BaseURL: ts.URL, HTTPClient: *ts.Client()}
+	ar, sc, m, err := a.addOrUpdateArticle("A", "B", art.ID, art.Quantity)
+	if ar.String() != expArt.String() || sc != sCod || err != nil {
 		t.Errorf("EXPECTED\nCart: %s\nStatus code: %d\nMessage: %s\n\n", art, sCod, "")
 		t.Errorf("GOT\nCart: %s\nStatus code: %d\nMessage: %s\nError: %s", ar, sc, m, err)
 	}

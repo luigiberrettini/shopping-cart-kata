@@ -24,8 +24,8 @@ func handleAddArticleToCart(input *bufio.Scanner, a *App) {
 	artQty := inputInt(input, "article quantity (must be positive)", false)
 	format := "\rAttempting to add article %q with quantity %d to cart %q ETag %s...\n"
 	fmt.Printf(format, artCode, artQty, id, etag)
-	art, code, msg, err := a.addArticleToCart(id, etag, artCode, artQty)
-	if code == http.StatusCreated {
+	art, code, msg, err := a.addOrUpdateArticle(id, etag, artCode, artQty)
+	if code == http.StatusCreated || code == http.StatusOK {
 		fmt.Printf("Added article %s\n", art)
 		return
 	}
@@ -35,10 +35,6 @@ func handleAddArticleToCart(input *bufio.Scanner, a *App) {
 	}
 	if code == http.StatusPreconditionFailed {
 		fmt.Println("No cart found with that ETag")
-		return
-	}
-	if code == http.StatusConflict {
-		fmt.Println("Article already added to the cart")
 		return
 	}
 	if code == http.StatusUnprocessableEntity {
