@@ -79,6 +79,26 @@ func (s AppService) AddArticleToCart(cartID int64, artCod string, quantity int) 
 	return nil
 }
 
+// SetArticleQty changes the quantity of an existing article in an existing cart
+func (s AppService) SetArticleQty(cartID int64, artCod string, quantity int) error {
+	if s.isNotReady() {
+		return ErrNotInitialized
+	}
+	c := s.CartDB.Get(cartID)
+	if c == cart.DummyCart {
+		return ErrCartNotFound
+	}
+	err := c.SetArticleQty(artCod, quantity)
+	if err == cart.ErrNonPositiveQuantity {
+		return ErrNonPositiveArtQty
+	}
+	if err == cart.ErrItemNotExistent {
+		return ErrArtNotFound
+	}
+	s.CartDB.Save(c)
+	return nil
+}
+
 // GetCart retrieves a priced cart with promotions applied
 func (s AppService) GetCart(id int64) (pricedcart.PricedCart, error) {
 	if s.isNotReady() {
