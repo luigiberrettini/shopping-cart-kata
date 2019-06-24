@@ -30,12 +30,7 @@ func TestInit(t *testing.T) {
 
 func TestCreateCart(t *testing.T) {
 	const cartID = 1
-	s := AppService{
-		CartIDG: &generator{id: cartID},
-		CartDB:  cart.NewStore(),
-		Catalog: defaultCatalog(),
-		PromEng: emptyPromEng(),
-	}
+	s := appSvcWithoutPromEng(cartID)
 	id, err := s.CreateCart()
 	if err != nil {
 		t.Fatalf("Error creating the cart %v", err)
@@ -62,12 +57,7 @@ func TestAddArticleToCart(t *testing.T) {
 		wrongArtQty2 = -3
 		artUnPrice   = 20.0
 	)
-	s := AppService{
-		CartIDG: &generator{id: cartID},
-		CartDB:  cart.NewStore(),
-		Catalog: defaultCatalog(),
-		PromEng: emptyPromEng(),
-	}
+	s := appSvcWithoutPromEng(cartID)
 	id, _ := s.CreateCart()
 	if err := s.AddArticleToCart(wrongCartID, wrongArtCod, wrongArtQty1); err != ErrCartNotFound {
 		t.Fatalf("Add article to non existent cart: %v instead of %v", err, ErrCartNotFound)
@@ -99,12 +89,7 @@ func TestAddArticleToCart(t *testing.T) {
 
 func TestDeleteCart(t *testing.T) {
 	const cartID = 1
-	s := AppService{
-		CartIDG: &generator{id: cartID},
-		CartDB:  cart.NewStore(),
-		Catalog: defaultCatalog(),
-		PromEng: emptyPromEng(),
-	}
+	s := appSvcWithoutPromEng(cartID)
 	id, err := s.CreateCart()
 	if err := s.DeleteCart(id); err != nil {
 		t.Fatal("Error deleting the cart")
@@ -112,6 +97,94 @@ func TestDeleteCart(t *testing.T) {
 	pc, err := s.GetCart(id)
 	if err != ErrCartNotFound {
 		t.Fatalf("Retrieved deleted cart %v with no cart not found error %v", pc, err)
+	}
+}
+
+func TestVoucherTshirtMug(t *testing.T) {
+	const (
+		cartID    = 1
+		expSubTot = 32.5
+	)
+	s := appSvcWithPromEng(cartID)
+	id, _ := s.CreateCart()
+	_ = s.AddArticleToCart(cartID, "VOUCHER", 1)
+	_ = s.AddArticleToCart(cartID, "TSHIRT", 1)
+	_ = s.AddArticleToCart(cartID, "MUG", 1)
+	pc, _ := s.GetCart(id)
+	if subTot := pc.GetSubtotal(); subTot != expSubTot {
+		t.Errorf("Subtotal for VOUCHER, TSHIRT, MUG %g insteaf of %g", subTot, expSubTot)
+	}
+}
+
+func Test2VoucherTshirt(t *testing.T) {
+	const (
+		cartID    = 1
+		expSubTot = 25.0
+	)
+	s := appSvcWithPromEng(cartID)
+	id, _ := s.CreateCart()
+	_ = s.AddArticleToCart(cartID, "VOUCHER", 1)
+	_ = s.AddArticleToCart(cartID, "TSHIRT", 1)
+	_ = s.SetArticleQty(cartID, "VOUCHER", 2)
+	pc, _ := s.GetCart(id)
+	if subTot := pc.GetSubtotal(); subTot != expSubTot {
+		t.Errorf("Subtotal for 2 VOUCHER, TSHIRT %g insteaf of %g", subTot, expSubTot)
+	}
+}
+
+func TestVoucher4Tshirt(t *testing.T) {
+	const (
+		cartID    = 1
+		expSubTot = 81.0
+	)
+	s := appSvcWithPromEng(cartID)
+	id, _ := s.CreateCart()
+	_ = s.AddArticleToCart(cartID, "TSHIRT", 1)
+	_ = s.SetArticleQty(cartID, "TSHIRT", 2)
+	_ = s.SetArticleQty(cartID, "TSHIRT", 3)
+	_ = s.AddArticleToCart(cartID, "VOUCHER", 1)
+	_ = s.SetArticleQty(cartID, "TSHIRT", 4)
+	pc, _ := s.GetCart(id)
+	if subTot := pc.GetSubtotal(); subTot != expSubTot {
+		t.Errorf("Subtotal for VOUCHER, 4 TSHIRT %g insteaf of %g", subTot, expSubTot)
+	}
+}
+
+func Test3Voucher3TshirtMug(t *testing.T) {
+	const (
+		cartID    = 1
+		expSubTot = 74.5
+	)
+	s := appSvcWithPromEng(cartID)
+	id, _ := s.CreateCart()
+	_ = s.AddArticleToCart(cartID, "VOUCHER", 1)
+	_ = s.AddArticleToCart(cartID, "TSHIRT", 1)
+	_ = s.SetArticleQty(cartID, "VOUCHER", 2)
+	_ = s.SetArticleQty(cartID, "VOUCHER", 3)
+	_ = s.AddArticleToCart(cartID, "MUG", 1)
+	_ = s.SetArticleQty(cartID, "TSHIRT", 2)
+	_ = s.SetArticleQty(cartID, "TSHIRT", 3)
+	pc, _ := s.GetCart(id)
+	if subTot := pc.GetSubtotal(); subTot != expSubTot {
+		t.Errorf("Subtotal for 3 VOUCHER, 3 TSHIRT, MUG %g insteaf of %g", subTot, expSubTot)
+	}
+}
+
+func appSvcWithoutPromEng(cartID int64) AppService {
+	return AppService{
+		CartIDG: &generator{id: cartID},
+		CartDB:  cart.NewStore(),
+		Catalog: defaultCatalog(),
+		PromEng: emptyPromEng(),
+	}
+}
+
+func appSvcWithPromEng(cartID int64) AppService {
+	return AppService{
+		CartIDG: &generator{id: cartID},
+		CartDB:  cart.NewStore(),
+		Catalog: defaultCatalog(),
+		PromEng: fullPromEng(),
 	}
 }
 
